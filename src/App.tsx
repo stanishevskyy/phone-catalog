@@ -1,21 +1,35 @@
-import React from 'react';
-import './App.scss';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 
-interface Props {
-  onClick: () => void;
-  children: React.ReactNode;
-}
+import { Footer } from './shared/components/Footer';
+import { Header } from './shared/components/Header';
+import { Loader } from './shared/components/Loader';
+import { SideMenu } from './shared/components/SideMenu';
+import { Error } from './shared/components/Error';
 
-export const Provider: React.FC<Props> = React.memo(({ onClick, children }) => (
-  <button type="button" onClick={onClick}>
-    {children}
-  </button>
-));
+import { loadProducts } from './store/initialDataSlice/initialDataSlice';
+import { useAppDispatch, useAppSelector } from './store/hooks';
 
-export const App: React.FC = () => {
+export const App = () => {
+  const { isLoading, error } = useAppSelector(state => state.products);
+  const dispatch = useAppDispatch();
+  const { pathname } = useLocation();
+  const [isOpenSide, setIsOpenSide] = useState(false);
+
+  useEffect(() => {
+    dispatch(loadProducts());
+  }, []);
+
+  if (error) {
+    return <Error />;
+  }
+
   return (
-    <div className="starter">
-      <Provider onClick={() => ({})}>TodoList</Provider>
-    </div>
+    <>
+      <Header isOpenSide={isOpenSide} setIsOpenSide={setIsOpenSide} />
+      <SideMenu isOpenSide={isOpenSide} setIsOpenSide={setIsOpenSide} />
+      {isLoading ? <Loader /> : <Outlet key={pathname} />}
+      <Footer />
+    </>
   );
 };
